@@ -112,6 +112,14 @@ shreddit-ad-post:not([data-rfvb-revealed]) .rfvb-media {
   height: 1rem;
 }
 
+/* Same grey as Reddit's Reply/Share/⋯ (button-plain-weak, live value
+   #8BA2AD in dark mode). Inside comments Reddit sets
+   --color-neutral-content-weak to blue, so don't use that. Hover and the
+   revealed orange still apply. */
+.rfvb-btn.rfvb-comment-row-btn:not(:hover):not(.content-visible) {
+  color: var(--color-secondary-plain-weak, #576f76);
+}
+
 /* In the action row, next to ⋯: same height as Reddit's row buttons. */
 .rfvb-btn.rfvb-comment-btn.rfvb-comment-row-btn {
   width: 2rem;
