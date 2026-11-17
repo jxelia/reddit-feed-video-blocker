@@ -130,6 +130,8 @@ shreddit-ad-post:not([data-rfvb-revealed]) .rfvb-media {
 .rfvb-btn svg {
   width: 1.25rem;
   height: 1.25rem;
+  /* Vertical arrows, as on Thumbnail Blocker for YouTube's final button. */
+  rotate: -45deg;
   fill: currentColor;
   display: block;
   transition: transform 0.2s ease;
