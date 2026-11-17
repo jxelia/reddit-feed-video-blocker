@@ -128,8 +128,8 @@ shreddit-ad-post:not([data-rfvb-revealed]) .rfvb-media {
 }
 
 .rfvb-btn svg {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.125rem;
+  height: 1.125rem;
   /* Vertical arrows, as on Thumbnail Blocker for YouTube's final button. */
   rotate: -45deg;
   fill: currentColor;
@@ -156,8 +156,8 @@ shreddit-ad-post:not([data-rfvb-revealed]) .rfvb-media {
 }
 
 .rfvb-btn.rfvb-comment-btn svg {
-  width: 1rem;
-  height: 1rem;
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 /* Same grey as Reddit's Reply/Share/⋯ (button-plain-weak, live value
@@ -177,8 +177,8 @@ shreddit-ad-post:not([data-rfvb-revealed]) .rfvb-media {
 }
 
 .rfvb-btn.rfvb-comment-btn.rfvb-comment-row-btn svg {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
 /* Old Reddit renders the button as a text link in the buttons row. */
