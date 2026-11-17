@@ -20,15 +20,6 @@ const MEDIA_SELECTOR = [
 // Anything containing these is part of the post's text, never hidden.
 const TEXT_SELECTOR = '[slot="title"], [slot="text-body"], [id^="post-title"], [slot="credit-bar"]';
 
-// Reveal button icon, the same as Thumbnail Blocker for YouTube's: Feather's
-// maximize-2 (arrows out) while the media is hidden, minimize-2 (arrows in)
-// while it shows, with useAnimations' nudge on click. Arrowheads are 4px
-// (Feather's are 6), and minimize-2's sit 1.3px further from the centre than
-// Feather's, so the inward nudge never makes them touch.
-const ICON_ARROWS = {
-  'rfvb-icon-max': ['M17 3H21V7M21 3L14 10', 'M7 21H3V17M3 21L10 14'],
-  'rfvb-icon-min': ['M19.3 8.7H15.3V4.7M15.3 8.7L21 3', 'M4.7 15.3H8.7V19.3M8.7 15.3L3 21']
-};
 
 const isOldReddit = location.hostname === 'old.reddit.com';
 
@@ -101,18 +92,13 @@ function svgEl(tag, attrs = {}) {
   return el;
 }
 
-// Both arrow pairs are built; CSS shows one by .content-visible. Each arrow is
-// its own group so the nudge moves them apart or together.
+// Reveal button icon: a flat rounded bar, the same in both states.
 function revealIcon() {
   const svg = svgEl('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true' });
-  for (const [cls, [up, down]] of Object.entries(ICON_ARROWS)) {
-    const pair = svg.appendChild(svgEl('g', {
-      class: cls, fill: 'none', stroke: 'currentColor', 'stroke-width': 2,
-      'stroke-linecap': 'round', 'stroke-linejoin': 'round'
-    }));
-    pair.appendChild(svgEl('g', { class: 'rfvb-arrow-up' })).appendChild(svgEl('path', { d: up }));
-    pair.appendChild(svgEl('g', { class: 'rfvb-arrow-down' })).appendChild(svgEl('path', { d: down }));
-  }
+  svg.appendChild(svgEl('line', {
+    x1: 5, y1: 12, x2: 19, y2: 12,
+    stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round'
+  }));
   return svg;
 }
 
@@ -123,25 +109,11 @@ function createButton(onToggle) {
 
   button.appendChild(revealIcon());
 
-  // Replays the arrow nudge (content.css) on the arrows that were clicked: they
-  // stay on screen (data-rfvb-hold) until the nudge ends, then the button shows
-  // the other pair.
-  const nudge = () => {
-    button.classList.remove('rfvb-nudge');
-    button.dataset.rfvbHold = button.classList.contains('content-visible') ? 'min' : 'max';
-    void button.offsetWidth;
-    button.classList.add('rfvb-nudge');
-  };
-  button.addEventListener('animationend', () => {
-    button.classList.remove('rfvb-nudge');
-    delete button.dataset.rfvbHold;
-  });
 
   // Posts are wrapped in a full-card link; keep the click from opening the post.
   button.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    nudge();
     onToggle();
   });
   ownButtons.add(button);
