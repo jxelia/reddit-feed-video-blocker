@@ -20,8 +20,15 @@ const MEDIA_SELECTOR = [
 // Anything containing these is part of the post's text, never hidden.
 const TEXT_SELECTOR = '[slot="title"], [slot="text-body"], [id^="post-title"], [slot="credit-bar"]';
 
-const EYE_OPEN_PATH = 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z';
-const EYE_CLOSED_PATH = 'M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z';
+// Reveal button icon, the same as Thumbnail Blocker for YouTube's: Feather's
+// maximize-2 (arrows out) while the media is hidden, minimize-2 (arrows in)
+// while it shows, with useAnimations' nudge on click. Arrowheads are 4px
+// (Feather's are 6), and minimize-2's sit 1.3px further from the centre than
+// Feather's, so the inward nudge never makes them touch.
+const ICON_ARROWS = {
+  'rfvb-icon-max': ['M17 3H21V7M21 3L14 10', 'M7 21H3V17M3 21L10 14'],
+  'rfvb-icon-min': ['M19.3 8.7H15.3V4.7M15.3 8.7L21 3', 'M4.7 15.3H8.7V19.3M8.7 15.3L3 21']
+};
 
 const isOldReddit = location.hostname === 'old.reddit.com';
 
@@ -55,8 +62,6 @@ function setIcon(button, revealed) {
   button.setAttribute('aria-pressed', String(revealed));
   button.setAttribute('aria-label', revealed ? 'Hide media' : 'Show hidden media');
   button.title = revealed ? 'Hide media' : 'Show media';
-  const path = button.querySelector('svg path');
-  if (path) path.setAttribute('d', revealed ? EYE_CLOSED_PATH : EYE_OPEN_PATH);
 }
 
 // Hidden players can keep playing audio; best-effort pause on re-hide. The
@@ -90,22 +95,53 @@ function findButton(root, selector, owner) {
   return null;
 }
 
+function svgEl(tag, attrs = {}) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const [name, value] of Object.entries(attrs)) el.setAttribute(name, value);
+  return el;
+}
+
+// Both arrow pairs are built; CSS shows one by .content-visible. Each arrow is
+// its own group so the nudge moves them apart or together.
+function revealIcon() {
+  const svg = svgEl('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true' });
+  for (const [cls, [up, down]] of Object.entries(ICON_ARROWS)) {
+    const pair = svg.appendChild(svgEl('g', {
+      class: cls, fill: 'none', stroke: 'currentColor', 'stroke-width': 2,
+      'stroke-linecap': 'round', 'stroke-linejoin': 'round'
+    }));
+    pair.appendChild(svgEl('g', { class: 'rfvb-arrow-up' })).appendChild(svgEl('path', { d: up }));
+    pair.appendChild(svgEl('g', { class: 'rfvb-arrow-down' })).appendChild(svgEl('path', { d: down }));
+  }
+  return svg;
+}
+
 function createButton(onToggle) {
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'rfvb-btn';
 
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('aria-hidden', 'true');
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  svg.appendChild(path);
-  button.appendChild(svg);
+  button.appendChild(revealIcon());
+
+  // Replays the arrow nudge (content.css) on the arrows that were clicked: they
+  // stay on screen (data-rfvb-hold) until the nudge ends, then the button shows
+  // the other pair.
+  const nudge = () => {
+    button.classList.remove('rfvb-nudge');
+    button.dataset.rfvbHold = button.classList.contains('content-visible') ? 'min' : 'max';
+    void button.offsetWidth;
+    button.classList.add('rfvb-nudge');
+  };
+  button.addEventListener('animationend', () => {
+    button.classList.remove('rfvb-nudge');
+    delete button.dataset.rfvbHold;
+  });
 
   // Posts are wrapped in a full-card link; keep the click from opening the post.
   button.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
+    nudge();
     onToggle();
   });
   ownButtons.add(button);

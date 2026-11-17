@@ -80,8 +80,51 @@ shreddit-ad-post:not([data-rfvb-revealed]) .rfvb-media {
   outline-offset: 1px;
 }
 
-.rfvb-btn.content-visible {
-  color: #ff4500;
+/* Reveal button: arrows out (maximize) while the media is hidden, in
+   (minimize) while it shows. Same grey in both states, as on YouTube. */
+.rfvb-btn.content-visible .rfvb-icon-max,
+.rfvb-btn:not(.content-visible) .rfvb-icon-min {
+  display: none;
+}
+
+/* During the nudge the clicked pair stays (content.js sets data-rfvb-hold);
+   with reduced motion there is no nudge, so the swap is immediate. */
+@media (prefers-reduced-motion: no-preference) {
+  .rfvb-btn.rfvb-nudge[data-rfvb-hold="max"] .rfvb-icon-max,
+  .rfvb-btn.rfvb-nudge[data-rfvb-hold="min"] .rfvb-icon-min { display: inline; }
+  .rfvb-btn.rfvb-nudge[data-rfvb-hold="max"] .rfvb-icon-min,
+  .rfvb-btn.rfvb-nudge[data-rfvb-hold="min"] .rfvb-icon-max { display: none; }
+}
+
+/* useAnimations' maximize-2/minimize-2 nudge, on click: the arrows
+   dip back, push out (or in) 1.8px, and settle. */
+.rfvb-nudge [class^="rfvb-arrow"] {
+  animation: rfvb-nudge-out 0.93s;
+}
+
+.rfvb-nudge .rfvb-icon-max .rfvb-arrow-down,
+.rfvb-nudge .rfvb-icon-min .rfvb-arrow-up {
+  animation-name: rfvb-nudge-in;
+}
+
+@keyframes rfvb-nudge-out {
+  0% { transform: none; animation-timing-function: cubic-bezier(0, 0, 0.58, 1); }
+  18% { transform: translate(-0.63px, 0.63px); animation-timing-function: cubic-bezier(0.2, 0, 0, 1); }
+  46% { transform: translate(1.8px, -1.8px); animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+  75% { transform: translate(-0.27px, 0.27px); animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+  100% { transform: none; }
+}
+
+@keyframes rfvb-nudge-in {
+  0% { transform: none; animation-timing-function: cubic-bezier(0, 0, 0.58, 1); }
+  18% { transform: translate(0.63px, -0.63px); animation-timing-function: cubic-bezier(0.2, 0, 0, 1); }
+  46% { transform: translate(-1.8px, 1.8px); animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+  75% { transform: translate(0.27px, -0.27px); animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+  100% { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rfvb-nudge [class^="rfvb-arrow"] { animation: none !important; }
 }
 
 .rfvb-btn svg {
@@ -117,9 +160,9 @@ shreddit-ad-post:not([data-rfvb-revealed]) .rfvb-media {
 
 /* Same grey as Reddit's Reply/Share/⋯ (button-plain-weak, live value
    #8BA2AD in dark mode). Inside comments Reddit sets
-   --color-neutral-content-weak to blue, so don't use that. Hover and the
-   revealed orange still apply. */
-.rfvb-btn.rfvb-comment-row-btn:not(:hover):not(.content-visible) {
+   --color-neutral-content-weak to blue, so don't use that. Hover still
+   applies. */
+.rfvb-btn.rfvb-comment-row-btn:not(:hover) {
   color: var(--color-secondary-plain-weak, #576f76);
 }
 
