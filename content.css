@@ -33,7 +33,10 @@ shreddit-ad-post:not([data-rfvb-revealed]) .rfvb-media {
   padding: 0;
   margin: 0;
   cursor: pointer;
-  color: var(--color-neutral-content-weak, #576f76);
+  /* Same colour as the post ⋯ next to it (button-plain, live value #f1f3fc in
+     dark mode). Not --color-neutral-content-weak: Reddit sets that to blue on
+     post pages and in comments. */
+  color: var(--color-secondary-plain, #576f76);
   width: 2rem;
   height: 2rem;
   min-width: 0;
