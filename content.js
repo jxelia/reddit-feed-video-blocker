@@ -205,11 +205,27 @@ function ownSlot(comment, name) {
     .find((el) => el.closest(COMMENT_SELECTOR) === comment) || null;
 }
 
-// The header is a full-width flex row holding the author/time line and, below
-// it, flair, both inside wrappers that shrink to fit. The button goes at the
-// header's end, where CSS pushes it to the right edge, top-aligned with the
-// author line. Falls back to just before the first media.
+// The action row (vote, Reply, Award, Share, ⋯) is shreddit-comment-action-row.
+// Its shadow row ends with <slot name="overflow">, filled by the light-DOM child
+// shreddit-overflow-menu[slot="overflow"]. The button takes the same slot,
+// right before the menu, so it sits next to ⋯. Falls back to the header's end,
+// then to just before the first media.
 function placeCommentButton(comment, body, button) {
+  const row = [...comment.querySelectorAll('shreddit-comment-action-row')]
+    .find((el) => el.closest(COMMENT_SELECTOR) === comment);
+  if (row) {
+    button.slot = 'overflow';
+    button.classList.add('rfvb-comment-row-btn');
+    const menu = row.querySelector(':scope > shreddit-overflow-menu');
+    if (menu) {
+      if (button.nextElementSibling !== menu) menu.insertAdjacentElement('beforebegin', button);
+    } else if (button.parentElement !== row) {
+      row.appendChild(button);
+    }
+    return;
+  }
+  button.removeAttribute('slot');
+  button.classList.remove('rfvb-comment-row-btn');
   const meta = ownSlot(comment, 'commentMeta');
   if (meta) {
     if (button.parentElement !== meta || button.nextElementSibling) meta.appendChild(button);

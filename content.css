@@ -112,6 +112,19 @@ shreddit-ad-post:not([data-rfvb-revealed]) .rfvb-media {
   height: 1rem;
 }
 
+/* In the action row, next to ⋯: same height as Reddit's row buttons. */
+.rfvb-btn.rfvb-comment-btn.rfvb-comment-row-btn {
+  width: 2rem;
+  height: 2rem;
+  margin: 0;
+  align-self: center;
+}
+
+.rfvb-btn.rfvb-comment-btn.rfvb-comment-row-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
 /* Old Reddit renders the button as a text link in the buttons row. */
 .rfvb-old-btn {
   cursor: pointer;
