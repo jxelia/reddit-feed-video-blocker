@@ -208,29 +208,21 @@ function ownSlot(comment, name) {
 // The action row (vote, Reply, Award, Share, ⋯) is shreddit-comment-action-row.
 // Its shadow row ends with <slot name="overflow">, filled by the light-DOM child
 // shreddit-overflow-menu[slot="overflow"]. The button takes the same slot,
-// right after the menu, so ⋯ stays where it was and the eye sits to its right. Falls back to the header's end,
-// then to just before the first media.
-function placeCommentButton(comment, body, button) {
-  const row = [...comment.querySelectorAll('shreddit-comment-action-row')]
-    .find((el) => el.closest(COMMENT_SELECTOR) === comment);
-  if (row) {
-    button.slot = 'overflow';
-    button.classList.add('rfvb-comment-row-btn');
-    const menu = row.querySelector(':scope > shreddit-overflow-menu');
-    if (menu) {
-      if (menu.nextElementSibling !== button) menu.insertAdjacentElement('afterend', button);
-    } else if (button.parentElement !== row) {
-      row.appendChild(button);
-    }
-    return;
-  }
-  button.removeAttribute('slot');
-  button.classList.remove('rfvb-comment-row-btn');
-  const meta = ownSlot(comment, 'commentMeta');
-  if (meta) {
-    if (button.parentElement !== meta || button.nextElementSibling) meta.appendChild(button);
-  } else if (!button.isConnected) {
-    body.querySelector(COMMENT_MEDIA_SELECTOR + ', .rfvb-media')?.insertAdjacentElement('beforebegin', button);
+// right after the menu, so ⋯ stays where it was and the eye sits to its right.
+// No other spot: the row is added after the header, and a fallback there made
+// the eye show in the header first, then jump.
+function commentActionRow(comment) {
+  return [...comment.querySelectorAll('shreddit-comment-action-row')]
+    .find((el) => el.closest(COMMENT_SELECTOR) === comment) || null;
+}
+
+function placeCommentButton(row, button) {
+  button.slot = 'overflow';
+  const menu = row.querySelector(':scope > shreddit-overflow-menu');
+  if (menu) {
+    if (menu.nextElementSibling !== button) menu.insertAdjacentElement('afterend', button);
+  } else if (button.parentElement !== row || button.nextElementSibling) {
+    row.appendChild(button);
   }
 }
 
@@ -239,14 +231,17 @@ function processComment(comment) {
   if (!body) return;
   markCommentImages(body);
   if (!body.querySelector(COMMENT_MEDIA_SELECTOR + ', .rfvb-media')) return;
+  // Wait for the action row; the observer runs again when it's added.
+  const row = commentActionRow(comment);
+  if (!row) return;
 
   let button = findButton(comment, '.rfvb-comment-btn', COMMENT_SELECTOR);
   if (!button) {
     button = createButton(() => togglePost(body, button));
-    button.classList.add('rfvb-comment-btn');
+    button.classList.add('rfvb-comment-btn', 'rfvb-comment-row-btn');
     setIcon(button, body.hasAttribute('data-rfvb-revealed'));
   }
-  placeCommentButton(comment, body, button);
+  placeCommentButton(row, button);
 }
 
 /* ---------- Old Reddit ---------- */
