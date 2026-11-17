@@ -208,7 +208,7 @@ function ownSlot(comment, name) {
 // The action row (vote, Reply, Award, Share, ⋯) is shreddit-comment-action-row.
 // Its shadow row ends with <slot name="overflow">, filled by the light-DOM child
 // shreddit-overflow-menu[slot="overflow"]. The button takes the same slot,
-// right before the menu, so it sits next to ⋯. Falls back to the header's end,
+// right after the menu, so ⋯ stays where it was and the eye sits to its right. Falls back to the header's end,
 // then to just before the first media.
 function placeCommentButton(comment, body, button) {
   const row = [...comment.querySelectorAll('shreddit-comment-action-row')]
@@ -218,7 +218,7 @@ function placeCommentButton(comment, body, button) {
     button.classList.add('rfvb-comment-row-btn');
     const menu = row.querySelector(':scope > shreddit-overflow-menu');
     if (menu) {
-      if (button.nextElementSibling !== menu) menu.insertAdjacentElement('beforebegin', button);
+      if (menu.nextElementSibling !== button) menu.insertAdjacentElement('afterend', button);
     } else if (button.parentElement !== row) {
       row.appendChild(button);
     }
