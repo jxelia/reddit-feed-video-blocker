@@ -4,12 +4,18 @@
    New Reddit (shreddit): each post is a <shreddit-post> whose media lives in
    light-DOM children slotted into its shadow root. .rfvb-media covers media that
    content.js finds outside the known slots. */
-shreddit-post:not([data-rfvb-revealed]) > [slot="post-media-container"],
+shreddit-post:not([post-type="crosspost"]):not([data-rfvb-revealed]) > [slot="post-media-container"],
 shreddit-post:not([data-rfvb-revealed]) > [slot="thumbnail"],
 shreddit-ad-post:not([data-rfvb-revealed]) > [slot="post-media-container"],
 shreddit-ad-post:not([data-rfvb-revealed]) > [slot="thumbnail"],
 shreddit-post:not([data-rfvb-revealed]) .rfvb-media,
 shreddit-ad-post:not([data-rfvb-revealed]) .rfvb-media {
+  display: none !important;
+}
+
+/* Crossposts: the media container is the original post's whole card, so only
+   the media in it is hidden (content.js then marks the box around it). */
+shreddit-post[post-type="crosspost"]:not([data-rfvb-revealed]) > [slot="post-media-container"] :is(img, video, shreddit-player, shreddit-player-2, shreddit-embed, gallery-carousel, shreddit-aspect-ratio, [id$="-aspect-ratio"]) {
   display: none !important;
 }
 

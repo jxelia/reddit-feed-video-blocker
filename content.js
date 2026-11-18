@@ -4,6 +4,12 @@ const POST_SELECTOR = 'shreddit-post, shreddit-ad-post';
 // post has media worth a button.
 const SLOT_SELECTOR = ':scope > [slot="post-media-container"], :scope > [slot="thumbnail"]';
 
+// A crosspost's media container holds the whole original post card (sub, title,
+// body, link). Only the media inside it is hidden; the card's text stays.
+const CROSSPOST_SELECTOR = '[post-type="crosspost"]';
+const CROSSPOST_MEDIA_SELECTOR = 'img, video, shreddit-player, shreddit-player-2, shreddit-embed, gallery-carousel, shreddit-aspect-ratio, [id$="-aspect-ratio"]';
+const CROSSPOST_TEXT_SELECTOR = '.crosspost-credit-bar, .crosspost-title, [id$="-post-rtjson-content"], faceplate-number, a[href^="http"]:not(:has(img))';
+
 // Media that can turn up outside the known slots (layout experiments, embeds,
 // post pages). Avatars and subreddit icons are also faceplate-img, so those are
 // only counted when found inside a slot.
@@ -44,7 +50,29 @@ function markStrayMedia(post) {
   });
 }
 
+// Same walk-up as above, bounded by the crosspost card and its own text.
+function markCrosspostMedia(post) {
+  if (!post.matches(CROSSPOST_SELECTOR)) return;
+  const container = post.querySelector(':scope > [slot="post-media-container"]');
+  if (!container) return;
+  const isText = (el) => el.matches(CROSSPOST_TEXT_SELECTOR) || !!el.querySelector(CROSSPOST_TEXT_SELECTOR);
+  container.querySelectorAll(CROSSPOST_MEDIA_SELECTOR).forEach((media) => {
+    if (media.closest('.rfvb-media') || isText(media)) return;
+    let node = media;
+    let block = media;
+    while (node && node !== container) {
+      if (isText(node)) break;
+      block = node;
+      node = node.parentElement;
+    }
+    if (block !== container) block.classList.add('rfvb-media');
+  });
+}
+
 function hasMedia(post) {
+  if (post.matches(CROSSPOST_SELECTOR)) {
+    return !!post.querySelector(':scope > [slot="thumbnail"], .rfvb-media');
+  }
   return !!post.querySelector(SLOT_SELECTOR + ', .rfvb-media');
 }
 
@@ -164,6 +192,7 @@ function placeButton(post, button) {
 
 function processNewPost(post) {
   markStrayMedia(post);
+  markCrosspostMedia(post);
   if (!hasMedia(post)) return;
 
   let button = findButton(post, '.rfvb-btn', POST_SELECTOR);
