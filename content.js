@@ -1,8 +1,10 @@
 const POST_SELECTOR = 'shreddit-post, shreddit-ad-post';
 
 // Media slots that content.css already hides. Used here only to decide whether a
-// post has media worth a button.
-const SLOT_SELECTOR = ':scope > [slot="post-media-container"], :scope > [slot="thumbnail"]';
+// post has media worth a button. Link posts in feeds nest the thumbnail in a
+// grid cell rather than slotting it, so it's matched at any depth.
+const THUMB_SELECTOR = '[slot="thumbnail"]:has(img, video)';
+const SLOT_SELECTOR = ':scope > [slot="post-media-container"], ' + THUMB_SELECTOR;
 
 // A crosspost's media container holds the whole original post card (sub, title,
 // body, link). Only the media inside it is hidden; the card's text stays.
@@ -71,7 +73,7 @@ function markCrosspostMedia(post) {
 
 function hasMedia(post) {
   if (post.matches(CROSSPOST_SELECTOR)) {
-    return !!post.querySelector(':scope > [slot="thumbnail"], .rfvb-media');
+    return !!post.querySelector(THUMB_SELECTOR + ', .rfvb-media');
   }
   return !!post.querySelector(SLOT_SELECTOR + ', .rfvb-media');
 }
@@ -204,6 +206,23 @@ function processNewPost(post) {
   placeButton(post, button);
 }
 
+/* ---------- Recent Posts (right sidebar) ---------- */
+
+// <recent-posts> keeps its items in light DOM; each thumbnail is a
+// div[data-testid="post-thumbnail"] box. content.css blanks its image and
+// leaves the box; the button sits in its top-right corner, outside the link.
+const RECENT_THUMB_SELECTOR = 'recent-posts [data-testid="post-thumbnail"]';
+
+function processRecentThumb(box) {
+  if (!box.querySelector('img, video')) return;
+  let button = findButton(box, '.rfvb-recent-btn', '[data-testid="post-thumbnail"]');
+  if (button) return;
+  button = createButton(() => togglePost(box, button));
+  button.classList.add('rfvb-recent-btn');
+  setIcon(button, box.hasAttribute('data-rfvb-revealed'));
+  box.appendChild(button);
+}
+
 /* ---------- New Reddit comments ---------- */
 
 const COMMENT_SELECTOR = 'shreddit-comment';
@@ -319,6 +338,7 @@ function processAll() {
   } else {
     document.querySelectorAll(POST_SELECTOR).forEach(processNewPost);
     document.querySelectorAll(COMMENT_SELECTOR).forEach(processComment);
+    document.querySelectorAll(RECENT_THUMB_SELECTOR).forEach(processRecentThumb);
   }
 }
 

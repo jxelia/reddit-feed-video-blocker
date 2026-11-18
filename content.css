@@ -5,12 +5,23 @@
    light-DOM children slotted into its shadow root. .rfvb-media covers media that
    content.js finds outside the known slots. */
 shreddit-post:not([post-type="crosspost"]):not([data-rfvb-revealed]) > [slot="post-media-container"],
-shreddit-post:not([data-rfvb-revealed]) > [slot="thumbnail"],
 shreddit-ad-post:not([data-rfvb-revealed]) > [slot="post-media-container"],
-shreddit-ad-post:not([data-rfvb-revealed]) > [slot="thumbnail"],
 shreddit-post:not([data-rfvb-revealed]) .rfvb-media,
 shreddit-ad-post:not([data-rfvb-revealed]) .rfvb-media {
   display: none !important;
+}
+
+/* Thumbnails keep their space, so titles wrap the same as with the image.
+   Link posts in feeds nest the slot in a grid cell, so match any depth. */
+shreddit-post:not([data-rfvb-revealed]) [slot="thumbnail"],
+shreddit-ad-post:not([data-rfvb-revealed]) [slot="thumbnail"] {
+  visibility: hidden !important;
+}
+
+/* Recent Posts sidebar: the thumbnail box stays, only its image is blanked.
+   The reveal button sits in the box's top-right corner. */
+recent-posts [data-testid="post-thumbnail"]:not([data-rfvb-revealed]) :is(img, video) {
+  visibility: hidden !important;
 }
 
 /* Crossposts: the media container is the original post's whole card, so only
@@ -141,4 +152,26 @@ shreddit-post[post-type="crosspost"]:not([data-rfvb-revealed]) > [slot="post-med
 /* Old Reddit renders the button as a text link in the buttons row. */
 .rfvb-old-btn {
   cursor: pointer;
+}
+
+/* Recent Posts: small round button in the thumbnail's top-right corner, on
+   Reddit's own media badge colours so it shows over the image too. */
+.rfvb-btn.rfvb-recent-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  color: var(--color-media-onbackground, #fff);
+  background-color: var(--color-media-background, rgba(0, 0, 0, 0.6));
+}
+
+.rfvb-btn.rfvb-recent-btn:hover {
+  color: var(--color-media-onbackground, #fff);
+  background-color: var(--color-media-background-hover, rgba(0, 0, 0, 0.8));
+}
+
+.rfvb-btn.rfvb-recent-btn svg {
+  width: 14px;
+  height: 14px;
 }
