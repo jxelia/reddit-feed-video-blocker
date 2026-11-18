@@ -14,8 +14,8 @@ shreddit-ad-post:not([data-rfvb-revealed]) .rfvb-media {
 /* Thumbnails keep their box and border, only the image is blanked, so titles
    wrap the same as with the image (as in Recent Posts). Link posts in feeds
    nest the slot in a grid cell, so match any depth. */
-shreddit-post:not([data-rfvb-revealed]) [slot="thumbnail"] :is(img, video),
-shreddit-ad-post:not([data-rfvb-revealed]) [slot="thumbnail"] :is(img, video) {
+shreddit-post:not([data-rfvb-revealed]) :is([slot="thumbnail"], [data-testid="post-thumbnail"]) :is(img, video),
+shreddit-ad-post:not([data-rfvb-revealed]) :is([slot="thumbnail"], [data-testid="post-thumbnail"]) :is(img, video) {
   visibility: hidden !important;
 }
 
@@ -25,9 +25,21 @@ recent-posts [data-testid="post-thumbnail"]:not([data-rfvb-revealed]) :is(img, v
   visibility: hidden !important;
 }
 
+/* Search results: the thumbnail has no border of its own, so the blank box
+   gets one (inset, so the size doesn't change). Button top-right. */
+div:has(> [data-testid="search_post_thumbnail"]) {
+  position: relative;
+}
+div:has(> [data-testid="search_post_thumbnail"]):not([data-rfvb-revealed]) {
+  box-shadow: inset 0 0 0 1px var(--color-neutral-border-weak, rgba(0, 0, 0, 0.1));
+}
+div:not([data-rfvb-revealed]) > [data-testid="search_post_thumbnail"] {
+  visibility: hidden !important;
+}
+
 /* Crossposts: the media container is the original post's whole card, so only
    the media in it is hidden (content.js then marks the box around it). */
-shreddit-post[post-type="crosspost"]:not([data-rfvb-revealed]) > [slot="post-media-container"] :is(img, video, shreddit-player, shreddit-player-2, shreddit-embed, gallery-carousel, shreddit-aspect-ratio, [id$="-aspect-ratio"]) {
+shreddit-post[post-type="crosspost"]:not([data-rfvb-revealed]) > [slot="post-media-container"] :is(img, video, shreddit-player, shreddit-player-2, shreddit-embed, gallery-carousel, shreddit-aspect-ratio, [id$="-aspect-ratio"]):not([data-testid="post-thumbnail"] *) {
   display: none !important;
 }
 
@@ -155,9 +167,9 @@ shreddit-post[post-type="crosspost"]:not([data-rfvb-revealed]) > [slot="post-med
   cursor: pointer;
 }
 
-/* Recent Posts: small round button in the thumbnail's top-right corner, on
+/* Recent Posts and search results: small round button in the thumbnail's top-right corner, on
    Reddit's own media badge colours so it shows over the image too. */
-.rfvb-btn.rfvb-recent-btn {
+.rfvb-btn.rfvb-corner-btn {
   position: absolute;
   top: 4px;
   right: 4px;
@@ -167,12 +179,12 @@ shreddit-post[post-type="crosspost"]:not([data-rfvb-revealed]) > [slot="post-med
   background-color: var(--color-media-background, rgba(0, 0, 0, 0.6));
 }
 
-.rfvb-btn.rfvb-recent-btn:hover {
+.rfvb-btn.rfvb-corner-btn:hover {
   color: var(--color-media-onbackground, #fff);
   background-color: var(--color-media-background-hover, rgba(0, 0, 0, 0.8));
 }
 
-.rfvb-btn.rfvb-recent-btn svg {
+.rfvb-btn.rfvb-corner-btn svg {
   width: 14px;
   height: 14px;
 }

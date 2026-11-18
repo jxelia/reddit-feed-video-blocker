@@ -3,7 +3,9 @@ const POST_SELECTOR = 'shreddit-post, shreddit-ad-post';
 // Media slots that content.css already hides. Used here only to decide whether a
 // post has media worth a button. Link posts in feeds nest the thumbnail in a
 // grid cell rather than slotting it, so it's matched at any depth.
-const THUMB_SELECTOR = '[slot="thumbnail"]:has(img, video)';
+// Crosspost cards carry the same thumbnail box without the slot.
+const THUMB_BOX = ':is([slot="thumbnail"], [data-testid="post-thumbnail"])';
+const THUMB_SELECTOR = THUMB_BOX + ':has(img, video)';
 const SLOT_SELECTOR = ':scope > [slot="post-media-container"], ' + THUMB_SELECTOR;
 
 // A crosspost's media container holds the whole original post card (sub, title,
@@ -59,7 +61,9 @@ function markCrosspostMedia(post) {
   if (!container) return;
   const isText = (el) => el.matches(CROSSPOST_TEXT_SELECTOR) || !!el.querySelector(CROSSPOST_TEXT_SELECTOR);
   container.querySelectorAll(CROSSPOST_MEDIA_SELECTOR).forEach((media) => {
-    if (media.closest('.rfvb-media') || isText(media)) return;
+    // Link crossposts: the right-side thumbnail keeps its box (CSS blanks the
+    // image), so the card's title wraps the same.
+    if (media.closest('.rfvb-media, ' + THUMB_BOX) || isText(media)) return;
     let node = media;
     let block = media;
     while (node && node !== container) {
@@ -213,12 +217,25 @@ function processNewPost(post) {
 // leaves the box; the button sits in its top-right corner, outside the link.
 const RECENT_THUMB_SELECTOR = 'recent-posts [data-testid="post-thumbnail"]';
 
+// Search results: faceplate-img[data-testid="search_post_thumbnail"] in a
+// rounded box (inside the result's link). CSS blanks the image and draws a
+// border on the box; the flag and button go on the box.
+const SEARCH_THUMB_SELECTOR = '[data-testid="search_post_thumbnail"]';
+
+function processSearchThumb(thumb) {
+  const box = thumb.parentElement;
+  if (box) addCornerButton(box, ':has(> ' + SEARCH_THUMB_SELECTOR + ')');
+}
+
 function processRecentThumb(box) {
-  if (!box.querySelector('img, video')) return;
-  let button = findButton(box, '.rfvb-recent-btn', '[data-testid="post-thumbnail"]');
+  if (box.querySelector('img, video')) addCornerButton(box, '[data-testid="post-thumbnail"]');
+}
+
+function addCornerButton(box, owner) {
+  let button = findButton(box, '.rfvb-corner-btn', owner);
   if (button) return;
   button = createButton(() => togglePost(box, button));
-  button.classList.add('rfvb-recent-btn');
+  button.classList.add('rfvb-corner-btn');
   setIcon(button, box.hasAttribute('data-rfvb-revealed'));
   box.appendChild(button);
 }
@@ -339,6 +356,7 @@ function processAll() {
     document.querySelectorAll(POST_SELECTOR).forEach(processNewPost);
     document.querySelectorAll(COMMENT_SELECTOR).forEach(processComment);
     document.querySelectorAll(RECENT_THUMB_SELECTOR).forEach(processRecentThumb);
+    document.querySelectorAll(SEARCH_THUMB_SELECTOR).forEach(processSearchThumb);
   }
 }
 
