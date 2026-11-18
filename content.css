@@ -11,10 +11,11 @@ shreddit-ad-post:not([data-rfvb-revealed]) .rfvb-media {
   display: none !important;
 }
 
-/* Thumbnails keep their space, so titles wrap the same as with the image.
-   Link posts in feeds nest the slot in a grid cell, so match any depth. */
-shreddit-post:not([data-rfvb-revealed]) [slot="thumbnail"],
-shreddit-ad-post:not([data-rfvb-revealed]) [slot="thumbnail"] {
+/* Thumbnails keep their box and border, only the image is blanked, so titles
+   wrap the same as with the image (as in Recent Posts). Link posts in feeds
+   nest the slot in a grid cell, so match any depth. */
+shreddit-post:not([data-rfvb-revealed]) [slot="thumbnail"] :is(img, video),
+shreddit-ad-post:not([data-rfvb-revealed]) [slot="thumbnail"] :is(img, video) {
   visibility: hidden !important;
 }
 
