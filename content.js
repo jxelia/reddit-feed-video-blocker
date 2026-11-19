@@ -200,6 +200,12 @@ function processNewPost(post) {
   markStrayMedia(post);
   markCrosspostMedia(post);
   if (!hasMedia(post)) return;
+  // No button on feed posts (user's call, 2026-11-20): their media just stays
+  // hidden. Only an opened post (view-context CommentsPage) gets one.
+  if (post.getAttribute('view-context') !== 'CommentsPage') {
+    post.querySelector('.rfvb-btn:not(.rfvb-comment-btn)')?.remove();
+    return;
+  }
 
   let button = findButton(post, '.rfvb-btn', POST_SELECTOR);
   if (!button) {
